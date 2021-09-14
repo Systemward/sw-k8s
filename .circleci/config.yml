@@ -16,8 +16,6 @@ jobs:
       - node/install-packages
       - run:
           command: npm run deploy
-      - run:
-          command: aws s3 ls
       - slack/notify:
           channel: sw-builds
           event: fail
@@ -28,7 +26,8 @@ jobs:
       - checkout
       - aws-cli/setup:
           profile-name: default
-      - run: echo "Run your code here"
+      - run:
+          command: aws s3 ls
 
 workflows:
   welcome:
