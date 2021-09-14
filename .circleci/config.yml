@@ -15,8 +15,8 @@ jobs:
       - node/install-packages
       - run:
           command: npm run deploy
+      - welcome/run
       - slack/notify:
           channel: sw-builds
           event: fail
           template: basic_fail_1
-      - welcome/run
