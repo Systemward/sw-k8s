@@ -28,5 +28,6 @@ workflows:
   aws-cli:
     jobs:
       - aws-cli-example:
-          context: AWS_CREDENTIALS
-          context: SLACK_SECRETS
+          context:
+            - AWS_CREDENTIALS
+            - SLACK_SECRETS
