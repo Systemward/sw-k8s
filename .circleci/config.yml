@@ -6,6 +6,7 @@ orbs:
   welcome: circleci/welcome-orb@0.4.1
   node: circleci/node@4.7.0
   slack: circleci/slack@4.4.4
+  aws-cli: circleci/aws-cli@2.0.3
 jobs:
   deploy:
     executor:
@@ -15,6 +16,8 @@ jobs:
       - node/install-packages
       - run:
           command: npm run deploy
+      - run:
+          command: aws s3 ls
       - slack/notify:
           channel: sw-builds
           event: fail
@@ -28,3 +31,7 @@ workflows:
     jobs:
       - deploy:
           context: SLACK_SECRETS
+  aws-cli:
+    jobs:
+      - aws-cli-example:
+          context: AWS_CREDENTIALS
