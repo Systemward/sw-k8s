@@ -19,7 +19,11 @@ jobs:
           channel: sw-builds
           event: fail
           template: basic_fail_1
+
 workflows:
+  welcome:
+    jobs:
+      - welcome/run
   deploy_and_notify:
     jobs:
       - deploy:
