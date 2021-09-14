@@ -4,8 +4,27 @@ version: 2.1
 orbs:
   # Declare a dependency on the welcome-orb
   welcome: circleci/welcome-orb@0.4.1
+  node: 'circleci/node:4.1'
+  slack: circleci/slack@4.1
+jobs:
+  deploy:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          command: npm run deploy
+      - slack/notify:
+          channel: sw-builds
+          event: fail
+          template: basic_fail_1
 # Orchestrate or schedule a set of jobs
 workflows:
+  deploy_and_notify:
+    jobs:
+      - deploy:
+          context: slack-secrets
   # Name the workflow "welcome"
   welcome:
     # Run the welcome/run job in its own container
