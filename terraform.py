@@ -19,7 +19,6 @@ def init(ctx, aws_account, aws_account_id, cluster, bucket_region):
 def plan(ctx, environment):
     cmd = "terraform plan " \
           "-var-file=./{}.tfvars "
-
     ctx.run(cmd.format(environment))
 
 
@@ -28,5 +27,4 @@ def apply(ctx, environment):
     cmd = "terraform apply " \
           "-auto-approve " \
           "-var-file=./{}.tfvars "
-
     ctx.run(cmd.format(environment))
