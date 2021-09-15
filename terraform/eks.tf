@@ -10,7 +10,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "my-cluster"
+  cluster_name = "sw-k8s-prod"
 }
 
 module "vpc" {
