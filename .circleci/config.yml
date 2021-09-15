@@ -19,7 +19,7 @@ jobs:
           channel: sw-builds
           event: fail
           template: basic_fail_1
-  single-job-lifecycle:
+  deploy-k8s:
     executor: terraform/default
     steps:
       - checkout
@@ -57,7 +57,7 @@ workflows:
           context:
             - AWS_CREDENTIALS
             - SLACK_SECRETS
-  deploy_k8s:
+  deploy-k8s:
     jobs:
       - terraform/fmt:
           checkout: true
