@@ -39,6 +39,7 @@ jobs:
       - run:
           name: Terraform Init & Plan
           command: |
+            cd terraform
             terraform init -input=false
             terraform plan -out tf.plan
       - persist_to_workspace:
@@ -70,6 +71,7 @@ jobs:
       - run:
           name: terraform init and apply
           command: |
+            cd terraform
             terraform init -input=false
             terraform apply --auto-approve tf.plan
       - slack/notify:
@@ -97,6 +99,7 @@ jobs:
       - run:
           name: terraform destroy
           command: |
+            cd terraform
             terraform init -input=false
             terraform destroy --auto-approve tf.plan
       - slack/notify:
