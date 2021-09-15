@@ -1,4 +1,8 @@
 version: 2.1
+orbs:
+  node: circleci/node@4.7.0
+  slack: circleci/slack@4.4.4
+  aws-cli: circleci/aws-cli@2.0.3
 executors:
   docker-executor:
     docker:
