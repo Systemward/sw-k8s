@@ -44,6 +44,7 @@ module "eks" {
   cluster_name    = "${local.cluster_name}"
   cluster_version = "1.21"
   subnets         = module.vpc.private_subnets
+  wait_for_cluster_timeout = 1200
 
   vpc_id = module.vpc.vpc_id
 
