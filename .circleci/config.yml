@@ -5,8 +5,9 @@ orbs:
   node: circleci/node@4.7.0
   slack: circleci/slack@4.4.4
   aws-cli: circleci/aws-cli@2.0.3
+  terraform: circleci/terraform@3.0.0
 jobs:
-  aws-cli-example:
+  setup-aws-cli:
     executor: aws-cli/default
     steps:
       - checkout
@@ -18,11 +19,65 @@ jobs:
           channel: sw-builds
           event: fail
           template: basic_fail_1
+  single-job-lifecycle:
+    executor: terraform/default
+    steps:
+      - checkout
+      - run:
+          command: >-
+            echo "credentials \"app.terraform.io\" {token =
+            \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
+          name: Create .terraformrc file locally
+      - terraform/install:
+          arch: amd64
+          os: linux
+          terraform_version: 1.0.6
+      - terraform/fmt:
+          path: .
+      - terraform/validate:
+          path: .
+      - terraform/init:
+          backend: true
+          backend_config_file: backend.hcl
+          path: .
+      - terraform/plan:
+          backend_config_file: backend.hcl
+          path: .
+      - terraform/apply:
+          backend_config_file: backend.hcl
+          path: .
+      - terraform/destroy:
+          path: .
+    working_directory: ~/src
 
 workflows:
   aws-cli:
     jobs:
-      - aws-cli-example:
+      - setup-aws-cli:
           context:
             - AWS_CREDENTIALS
             - SLACK_SECRETS
+  deploy_k8s:
+    jobs:
+      - terraform/fmt:
+          checkout: true
+          context: terraform
+      - terraform/validate:
+          checkout: true
+          context: terraform
+          requires:
+            - terraform/fmt
+      - terraform/plan:
+          checkout: true
+          context: terraform
+          persist-workspace: true
+          requires:
+            - terraform/validate
+      - terraform/apply:
+          attach-workspace: true
+          context: terraform
+          filters:
+            branches:
+              only: master
+          requires:
+            - terraform/plan
