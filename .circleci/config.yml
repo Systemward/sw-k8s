@@ -5,7 +5,6 @@ orbs:
   node: circleci/node@4.7.0
   slack: circleci/slack@4.4.4
   aws-cli: circleci/aws-cli@2.0.3
-  terraform: circleci/terraform@3.0.0
 jobs:
   setup-aws-cli:
     executor: aws-cli/default
@@ -19,36 +18,6 @@ jobs:
           channel: sw-builds
           event: fail
           template: basic_fail_1
-  deploy-k8s:
-    executor: terraform/default
-    steps:
-      - checkout
-      - run:
-          command: >-
-            echo "credentials \"app.terraform.io\" {token =
-            \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
-          name: Create .terraformrc file locally
-      - terraform/install:
-          arch: amd64
-          os: linux
-          terraform_version: 1.0.6
-      - terraform/fmt:
-          path: .
-      - terraform/validate:
-          path: .
-      - terraform/init:
-          backend: true
-          backend_config_file: backend.hcl
-          path: .
-      - terraform/plan:
-          backend_config_file: backend.hcl
-          path: .
-      - terraform/apply:
-          backend_config_file: backend.hcl
-          path: .
-      - terraform/destroy:
-          path: .
-    working_directory: ~/terraform
 
 workflows:
   aws-cli:
@@ -57,31 +26,114 @@ workflows:
           context:
             - AWS_CREDENTIALS
             - SLACK_SECRETS
-  deploy-k8s:
+
+
+            orbs:
+  azure-cli: circleci/azure-cli@1.0.0
+# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/python:3.9.6
+jobs:
+  plan:
+    working_directory: ~/project
+    environment:
+      ARM_CLIENT_ID: dd66148a-c62e-4995-918f-384275fffa0a
+      ARM_SUBSCRIPTION_ID: fec422e4-40ce-401c-a664-965211904b08
+      ARM_TENANT_ID: 5a7488ef-bfb1-464f-ae6f-d2a9f14cd609
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Verify AWS CLI is installed
+          executor: aws-cli/default
+          command: aws --version
+      - run:
+          name: Install Terraform
+          command: |
+            sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+            sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+            sudo apt-get update && sudo apt-get install terraform
+      - run:
+          name: Terraform Init & Plan
+          command: |
+            terraform init -input=false
+            terraform plan -out tf.plan
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - tf.plan
+  apply:
+    working_directory: ~/project
+    executor: docker-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Verify AWS CLI is installed
+          executor: aws-cli/default
+          command: aws --version
+      - run:
+          command: |
+            sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+            sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+            sudo apt-get update && sudo apt-get install terraform
+          name: Install Terraform
+      - run:
+          name: terraform init and apply
+          command: |
+            terraform init -input=false
+            terraform apply --auto-approve tf.plan
+  destroy:
+    working_directory: ~/project
+    executor: docker-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Verify AWS CLI is installed
+          executor: aws-cli/default
+          command: aws --version
+      - run:
+          command: |
+            sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+            sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+            sudo apt-get update && sudo apt-get install terraform
+          name: Install Terraform
+      - run:
+          name: terraform destroy
+          command: |
+            terraform init -input=false
+            terraform destroy --auto-approve tf.plan
+workflows:
+  version: 2.1
+  Terraform Configuration:
     jobs:
-      - terraform/fmt:
-          checkout: true
+      - plan:
           context:
             - AWS_CREDENTIALS
-      - terraform/validate:
-          checkout: true
-          context:
-            - AWS_CREDENTIALS
+            - SLACK_SECRETS
+      - require approval:
+          type: approval
           requires:
-            - terraform/fmt
-      - terraform/plan:
-          checkout: true
+            - plan
+      - apply:
+          requires:
+            - require approval
           context:
             - AWS_CREDENTIALS
-          persist-workspace: true
+            - SLACK_SECRETS
+      - destroy:
           requires:
-            - terraform/validate
-      - terraform/apply:
-          attach-workspace: true
+            - apply
+            - require approval
           context:
             - AWS_CREDENTIALS
-          filters:
-            branches:
-              only: master
-          requires:
-            - terraform/plan
+            - SLACK_SECRETS
