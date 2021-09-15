@@ -48,7 +48,7 @@ jobs:
           path: .
       - terraform/destroy:
           path: .
-    working_directory: ~/src
+    working_directory: ~/terraform
 
 workflows:
   aws-cli:
