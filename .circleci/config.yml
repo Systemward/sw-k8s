@@ -45,7 +45,7 @@ jobs:
       - persist_to_workspace:
           root: ~/project/terraform
           paths:
-            - tf.plan
+            - .
       - slack/notify:
           channel: sw-builds
           event: fail
