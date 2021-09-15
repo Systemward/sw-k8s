@@ -28,6 +28,7 @@ jobs:
       - aws-cli/setup:
           profile-name: default
       - run:
+          name: Confirm AWS CLI Version
           command: aws --version
       - run:
           name: Install Terraform
@@ -101,7 +102,7 @@ jobs:
           command: |
             cd terraform
             terraform init -input=false
-            terraform destroy --auto-approve tf.plan
+            terraform destroy --auto-approve
       - slack/notify:
           channel: sw-builds
           event: fail
