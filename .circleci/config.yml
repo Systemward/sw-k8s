@@ -6,10 +6,6 @@ executors:
 jobs:
   plan:
     working_directory: ~/project
-    environment:
-      ARM_CLIENT_ID: dd66148a-c62e-4995-918f-384275fffa0a
-      ARM_SUBSCRIPTION_ID: fec422e4-40ce-401c-a664-965211904b08
-      ARM_TENANT_ID: 5a7488ef-bfb1-464f-ae6f-d2a9f14cd609
     executor: docker-executor
     steps:
       - checkout
