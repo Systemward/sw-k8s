@@ -115,20 +115,25 @@ workflows:
           context:
             - AWS_CREDENTIALS
             - SLACK_SECRETS
-      - require approval:
+      - apply approval:
           type: approval
           requires:
             - plan
       - apply:
           requires:
-            - require approval
+            - apply approval
+          context:
+            - AWS_CREDENTIALS
+            - SLACK_SECRETS
+      - destroy approval:
+          type: approval
+          requires: apply
           context:
             - AWS_CREDENTIALS
             - SLACK_SECRETS
       - destroy:
           requires:
-            - apply
-            - require approval
+            - destroy approval
           context:
             - AWS_CREDENTIALS
             - SLACK_SECRETS
