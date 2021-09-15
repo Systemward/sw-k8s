@@ -127,8 +127,6 @@ workflows:
             - SLACK_SECRETS
       - destroy approval:
           type: approval
-          requires:
-            - apply
       - destroy:
           requires:
             - destroy approval
