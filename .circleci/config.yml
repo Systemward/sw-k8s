@@ -1,36 +1,3 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
-version: 2.1
-# Use a package of configuration called an orb.
-orbs:
-  node: circleci/node@4.7.0
-  slack: circleci/slack@4.4.4
-  aws-cli: circleci/aws-cli@2.0.3
-jobs:
-  setup-aws-cli:
-    executor: aws-cli/default
-    steps:
-      - checkout
-      - aws-cli/setup:
-          profile-name: default
-      - run:
-          command: aws s3 ls
-      - slack/notify:
-          channel: sw-builds
-          event: fail
-          template: basic_fail_1
-
-workflows:
-  aws-cli:
-    jobs:
-      - setup-aws-cli:
-          context:
-            - AWS_CREDENTIALS
-            - SLACK_SECRETS
-
-
-            orbs:
-  azure-cli: circleci/azure-cli@1.0.0
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 executors:
   docker-executor:
@@ -66,6 +33,10 @@ jobs:
           root: ~/project
           paths:
             - tf.plan
+      - slack/notify:
+          channel: sw-builds
+          event: fail
+          template: basic_fail_1
   apply:
     working_directory: ~/project
     executor: docker-executor
@@ -89,6 +60,10 @@ jobs:
           command: |
             terraform init -input=false
             terraform apply --auto-approve tf.plan
+      - slack/notify:
+          channel: sw-builds
+          event: fail
+          template: basic_fail_1
   destroy:
     working_directory: ~/project
     executor: docker-executor
@@ -112,6 +87,10 @@ jobs:
           command: |
             terraform init -input=false
             terraform destroy --auto-approve tf.plan
+      - slack/notify:
+          channel: sw-builds
+          event: fail
+          template: basic_fail_1
 workflows:
   version: 2.1
   Terraform Configuration:
