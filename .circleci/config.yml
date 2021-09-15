@@ -61,21 +61,22 @@ workflows:
     jobs:
       - terraform/fmt:
           checkout: true
-          context: terraform
+          context:
+            - AWS_CREDENTIALS
       - terraform/validate:
           checkout: true
-          context: terraform
+            - AWS_CREDENTIALS
           requires:
             - terraform/fmt
       - terraform/plan:
           checkout: true
-          context: terraform
+            - AWS_CREDENTIALS
           persist-workspace: true
           requires:
             - terraform/validate
       - terraform/apply:
           attach-workspace: true
-          context: terraform
+            - AWS_CREDENTIALS
           filters:
             branches:
               only: master
