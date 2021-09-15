@@ -21,7 +21,7 @@ jobs:
           event: fail
           template: basic_fail_1
   plan:
-    working_directory: ~/project
+    working_directory: ~/project/terraform
     executor: docker-executor
     steps:
       - checkout
@@ -43,20 +43,20 @@ jobs:
             terraform init -input=false
             terraform plan -out tf.plan
       - persist_to_workspace:
-          root: ~/project
+          root: ~/project/terraform
           paths:
-            - ~/project/terraform/tf.plan
+            - tf.plan
       - slack/notify:
           channel: sw-builds
           event: fail
           template: basic_fail_1
   apply:
-    working_directory: ~/project
+    working_directory: ~/project/terraform
     executor: docker-executor
     steps:
       - checkout
       - attach_workspace:
-          at: ~/project
+          at: ~/project/terraform
       - aws-cli/setup:
           profile-name: default
       - run:
@@ -79,12 +79,12 @@ jobs:
           event: fail
           template: basic_fail_1
   destroy:
-    working_directory: ~/project
+    working_directory: ~/project/terraform
     executor: docker-executor
     steps:
       - checkout
       - attach_workspace:
-          at: ~/project
+          at: ~/project/terraform
       - aws-cli/setup:
           profile-name: default
       - run:
