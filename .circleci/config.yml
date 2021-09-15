@@ -8,6 +8,18 @@ executors:
     docker:
       - image: cimg/python:3.9.6
 jobs:
+  setup-aws-cli:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+          profile-name: default
+      - run:
+          command: aws --version
+      - slack/notify:
+          channel: sw-builds
+          event: fail
+          template: basic_fail_1
   plan:
     working_directory: ~/project
     executor: docker-executor
@@ -93,6 +105,12 @@ jobs:
           template: basic_fail_1
 workflows:
   version: 2.1
+  aws-cli:
+    jobs:
+      - setup-aws-cli:
+          context:
+            - AWS_CREDENTIALS
+            - SLACK_SECRETS
   Terraform Configuration:
     jobs:
       - plan:
