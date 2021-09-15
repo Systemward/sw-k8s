@@ -2,8 +2,6 @@
 version: 2.1
 # Use a package of configuration called an orb.
 orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
   node: circleci/node@4.7.0
   slack: circleci/slack@4.4.4
   aws-cli: circleci/aws-cli@2.0.3
@@ -22,9 +20,6 @@ jobs:
           template: basic_fail_1
 
 workflows:
-  welcome:
-    jobs:
-      - welcome/run
   aws-cli:
     jobs:
       - aws-cli-example:
